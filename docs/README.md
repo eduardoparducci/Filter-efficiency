@@ -8,7 +8,7 @@
   - [x] Ferramentas utilizadas
   - [x] Como será feita a comparação (quais gráficos, etc..)
   - [x] Divisão do trabalho
-  - [ ] Tratamento de borda
+  - [x] Tratamento de borda
 
 ### 1.1 Threads
   A divisão de trabalho será feita de acordo com o número de *threads*/processos, sendo
