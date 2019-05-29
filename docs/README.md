@@ -39,4 +39,5 @@
 ---
 ## Otimizações (opcional)
 > Reduzir o número de falhas de cache 
+
 > Utilizar o for de forma que instruções MMX o reconheçam
