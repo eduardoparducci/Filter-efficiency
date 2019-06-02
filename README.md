@@ -20,6 +20,7 @@ Onde `<método>` pode ser uma das seguintes opções:
 - inline
 - multithread
 - multiprocess
+
 E `<diretório-imagem>` indica o caminho para a imagem ao qual deseja-se aplicar o filtro.
 
 ### 2.2 Execução de método individual com análise
