@@ -1,6 +1,6 @@
 # Macros para compilacao
 CC = gcc
-CFLAGS = -Wextra -lpthread
+CFLAGS = -Wextra -lpthread -I./ -lfreeimage
 DIR = src
 BJS = $(SRCS:.c=.o)
 
@@ -8,6 +8,9 @@ BJS = $(SRCS:.c=.o)
 ILSRC = $(DIR)/inline.c
 MPSRC = $(DIR)/multiprocess.c
 MTSRC = $(DIR)/multithread.c
+
+# Macros para as bibliotecas
+LIBS = lib/*.c
 
 # Macros para arquivos  de saída
 ILOUT = inline
@@ -26,7 +29,7 @@ ZIPFILE = $(USERNAME).zip
 EXTENSIONS = *.c *.h *.sh *.pdf
 
 inline:
-	$(CC) -o$(ILOUT) $(ILSRC) $(CFLAGS)
+	$(CC) -o$(ILOUT) $(ILSRC) $(LIBS) $(CFLAGS)
 
 multiprocess:
 	$(CC) -o$(MPOUT) $(MPSRC) $(CFLAGS)
