@@ -1,0 +1,11 @@
+# Output images
+./images/*filtered*
+
+# Compiled codes
+./inline
+./multithread
+./multiprocess
+src/*.o
+
+# Compressed code
+./*.zip
