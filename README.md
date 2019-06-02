@@ -9,6 +9,21 @@ O Trabalho consiste na análise de eficiência em uma aplicação de filtro em i
 A implementação do software de aplicação de filtro e análise de desempenho foi feita utilizando linguagem C.
 
 ## 2. Instruções de uso
+
+### 2.1 Execução de método individual sem análise
+Para executar um método específico sem a análise de desempenho, execute os seguintes comandos:
+```
+  make <método>
+  ./<método> <diretório-imagem>
+```
+Onde `<método>` pode ser uma das seguintes opções:
+- inline
+- multithread
+- multiprocess
+
+E `<diretório-imagem>` indica o caminho para a imagem ao qual deseja-se aplicar o filtro.
+
+### 2.2 Execução de método individual com análise
 **Em construção**
 
 ## 3. Instruções de desenvolvimento
