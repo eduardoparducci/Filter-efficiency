@@ -147,11 +147,13 @@ image sobel(image *img) {
   filtered.g = malloc(limh*limw*sizeof(float));
   filtered.b = malloc(limh*limw*sizeof(float));
 
+  /* Filter image */
   for(i=0 ; i<limh ; i++) {
     for(j=0 ; j<limw ; j++) {
       apply_sobel(img, &filtered, i, j);
     }
   }
+
   return filtered;
 }
 
