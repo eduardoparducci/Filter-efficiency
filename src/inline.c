@@ -3,9 +3,14 @@
 #include <string.h>
 
 #include "../lib/imageprocessing.h"
+#include "../lib/chronometer.h"
+
+void *sobel_interface(void *args);
 
 int main(int argc, char *argv[]) {
-  image img, filtered;
+  FILE *fp;
+  image img;
+  image *filtered = NULL;
   char out_file[100] = "filtered-";
   unsigned int i, j;
 
@@ -23,14 +28,30 @@ int main(int argc, char *argv[]) {
     strcat(out_file, "-filtered.jpg");
   }
 
-  /* Process image */
+  /* Open Image */
   img = open_image(argv[1]);
-  filtered = sobel(&img);
-  save_image(out_file, &filtered);
+
+  /* Write header of time report */
+  fp = fopen("./docs/time-report.csv", "a");
+  fprintf(fp, "Inline, 1, %u, %u, ", img.height, img.width);
+  fclose(fp);
   
+  /* Process image */
+  filtered = measure_time(sobel_interface, &img);
+  save_image(out_file, filtered);
+
   /* Remove images from memory */
   free_image(&img);
-  free_image(&filtered);
-  
+  free_image(filtered);  
+  free(filtered);
+
   return 0;
+}
+
+void *sobel_interface(void *args) {
+  image *img = (image *)args;
+  image *filtered = malloc(sizeof(image));
+
+  *filtered = sobel(img);
+  return filtered;
 }
