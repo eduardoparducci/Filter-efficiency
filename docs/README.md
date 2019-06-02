@@ -12,7 +12,7 @@
 
 ### 1.1 Threads
   A divisão de trabalho será feita de acordo com o número de *threads*/processos, sendo
-  que cada um deles irá processar `1 / (nº de threads/processos)`.
+  que cada um deles irá processar `1 / (nº de threads ou processos)` da imagem.
 
 ### 1.2 Parâmetros de variação
   Os parâmetros de análise serão os seguintes:
