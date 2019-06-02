@@ -16,7 +16,7 @@ LIBS = lib/*.c
 ILOUT = inline
 MPOUT = multiprocess
 MTOUT = multithread
-
+IMGDIR = ./images
 # Macros para teste
 BASH = sh
 TEST_SCRIPT = test.sh
@@ -46,3 +46,4 @@ clean:
 	$(RM) ./$(MTOUT)
 	$(RM) $(DIR)/*.o
 	$(RM) ./$(ZIPFILE)
+	$(RM) $(IMGDIR)/*filtered*
