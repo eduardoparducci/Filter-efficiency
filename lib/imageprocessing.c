@@ -132,15 +132,46 @@ void print_image(image *img) {
   }
 }
 
+void black_white(image *img) {
+
+  unsigned int i, j;
+  float avarage = 0;
+  
+  for(i=0 ; i<img->height ; i++) {
+    for(j=0 ; j<img->width ; j++) {
+      
+      /* Calculate avarage of R+G+B */
+      avarage = (
+        img->r[i*img->width + j] +
+        img->g[i*img->width + j] +
+        img->b[i*img->width + j] ) / 3;
+
+      /*  Transform in binary (black or white) */
+      if(avarage >= 128) {
+        img->r[i*img->width + j] = 255;
+        img->g[i*img->width + j] = 255;
+        img->b[i*img->width + j] = 255;
+      } else {
+        img->r[i*img->width + j] = 0;
+        img->g[i*img->width + j] = 0;
+        img->b[i*img->width + j] = 0;
+      }
+    }
+  }
+}
+
 image sobel(image *img) {
 
   unsigned int i, j;
   unsigned int limh, limw;
   image filtered;
-
+  
   /* Create blank sample based on *img */
   limh = img->height;
   limw = img->width;
+
+  /* Take black and white version of img */
+  black_white(img);
   filtered.width = limw;
   filtered.height = limh;
   filtered.r = malloc(limh*limw*sizeof(float));
@@ -212,11 +243,11 @@ void apply_sobel(image *src, image *dest, unsigned int lin, unsigned int col) {
    dest->b[pos] += src->b[pos];
  }
  
- /* Bring value to range (0~255) */
- if(dest->r[pos] < 0) dest->r[pos] = 0; 
- if(dest->g[pos] < 0) dest->g[pos] = 0;
- if(dest->b[pos] < 0) dest->b[pos] = 0;
- if(dest->r[pos] > 255) dest->r[pos] = 255; 
- if(dest->g[pos] > 255) dest->g[pos] = 255;
- if(dest->b[pos] > 255) dest->b[pos] = 255;
+ /* Bring value to binary 128+ -> 255 and 128- -> 0 */
+ if(dest->r[pos] < 128) dest->r[pos] = 0; 
+ if(dest->g[pos] < 128) dest->g[pos] = 0;
+ if(dest->b[pos] < 128) dest->b[pos] = 0;
+ if(dest->r[pos] >= 128) dest->r[pos] = 255; 
+ if(dest->g[pos] >= 128) dest->g[pos] = 255;
+ if(dest->b[pos] >= 128) dest->b[pos] = 255;
 }
