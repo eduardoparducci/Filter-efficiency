@@ -17,6 +17,7 @@ ILOUT = inline
 MPOUT = multiprocess
 MTOUT = multithread
 IMGDIR = ./images
+
 # Macros para teste
 BASH = sh
 TEST_SCRIPT = test.sh
@@ -32,10 +33,10 @@ inline:
 	$(CC) -o$(ILOUT) $(ILSRC) $(LIBS) $(CFLAGS)
 
 multiprocess:
-	$(CC) -o$(MPOUT) $(MPSRC) $(CFLAGS)
+	$(CC) -o$(MPOUT) $(MPSRC) $(LIBS) $(CFLAGS)
 
 multithread:
-	$(CC) -o$(MTOUT) $(MTSRC) $(CFLAGS)
+	$(CC) -o$(MTOUT) $(MTSRC) $(LIBS) $(CFLAGS)
 
 zip:clean
 	$(ZIP) -R $(ZIPFILE) Makefile $(EXTENSIONS)
