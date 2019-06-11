@@ -1,11 +1,14 @@
 # Output images
-./images/*filtered*
+images/*filtered*
 
 # Compiled codes
-./inline
-./multithread
-./multiprocess
+inline
+multithread
+multiprocess
 src/*.o
 
 # Compressed code
-./*.zip
+*.zip
+
+# Time report
+docs-time-report.csv
