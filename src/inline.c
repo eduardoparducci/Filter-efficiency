@@ -35,8 +35,9 @@ int main(int argc, char *argv[]) {
   fp = fopen("./docs/time-report.csv", "a");
   fprintf(fp, "Inline, 1, %u, %u, ", img.height, img.width);
   fclose(fp);
-  
+
   /* Process image */
+  grey_scale(&img);
   filtered = measure_time(sobel_interface, &img);
   save_image(out_file, filtered);
 

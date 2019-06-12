@@ -5,7 +5,7 @@
 
 #include "imageprocessing.h"
 
-#define THRESHOLD 35
+#define THRESHOLD 39
 
 image open_image(char *file_name) {
   FIBITMAP *bitmapIn;
@@ -162,7 +162,6 @@ image sobel(image *img) {
 	image filtered;
 
 	/* Take black and white version of img */
-  grey_scale(img);
 	limh = img->height;
 	limw = img->width;
 	filtered.width = limw;
@@ -194,7 +193,6 @@ image sobel_multithread(image *img, int num_threads) {
 	block_size = img->height/num_threads;
   
 	/* Take black and white version of img */
-  grey_scale(img);
 	limh = img->height;
 	limw = img->width;
 	filtered.width = limw;

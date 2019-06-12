@@ -42,8 +42,9 @@ int main(int argc, char *argv[]) {
   fp = fopen("./docs/time-report.csv", "a");
   fprintf(fp, "Multithread, %d, %u, %u, ", *num_thr, img.height, img.width);
   fclose(fp);
- 
+
   /* Process image */
+  grey_scale(&img);
   filtered = measure_time_multithread(sobel_interface, &img, num_thr);
   save_image(out_file, filtered);
 
