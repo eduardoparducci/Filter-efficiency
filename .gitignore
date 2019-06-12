@@ -9,3 +9,6 @@ src/*.o
 
 # Compressed code
 ./*.zip
+
+# Time report file
+./docs/time-report.csv
