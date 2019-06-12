@@ -16,10 +16,8 @@ int main(int argc, char *argv[]) {
   image img;
   image *filtered = NULL;
   char out_file[100] = "filtered-";
-  unsigned int i, j;
-  
-  
   int *num_thr = malloc(sizeof(int));
+
   *num_thr = MAX;
 
   /* Title of running file */
@@ -30,6 +28,7 @@ int main(int argc, char *argv[]) {
     printf("Missing filename. Expect: ./inline <filename>\n");
     return 1;
   } else {
+    
     /* Append '-filtered' on output picture name */
     strcpy(out_file, argv[1]);
     out_file[strlen(out_file)-strlen(".jpg")] = '\0';
@@ -41,10 +40,9 @@ int main(int argc, char *argv[]) {
 
   /* Write header of time report */
   fp = fopen("./docs/time-report.csv", "a");
-  fprintf(fp, "Inline, 1, %u, %u, ", img.height, img.width);
+  fprintf(fp, "Multithread, %d, %u, %u, ", *num_thr, img.height, img.width);
   fclose(fp);
  
-  
   /* Process image */
   filtered = measure_time_multithread(sobel_interface, &img, num_thr);
   save_image(out_file, filtered);
