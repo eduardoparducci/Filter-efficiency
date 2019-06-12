@@ -18,7 +18,8 @@ void print_image(image *img);
 void save_image(char *file_name, image *img);
 void free_image(image *img);
 
-void black_white(image *img);
+/* Filter functions */
+void grey_scale(image *img);
 image sobel(image *img);
 image sobel_multithread(image *img, int num_thr);
 void *apply_sobel_threads(void *args);

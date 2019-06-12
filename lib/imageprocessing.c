@@ -6,6 +6,7 @@
 
 #include "imageprocessing.h"
 
+#define THRESHOLD 35
 
 image open_image(char *file_name) {
   FIBITMAP *bitmapIn;
@@ -134,7 +135,7 @@ void print_image(image *img) {
 	}
 }
 
-void black_white(image *img) {
+void grey_scale(image *img) {
 
 	unsigned int i, j;
 	float avarage = 0;
@@ -147,16 +148,10 @@ void black_white(image *img) {
 				img->g[i*img->width + j] +
 				img->b[i*img->width + j] ) / 3;
 
-			/*  Transform in binary (black or white) */
-			if(avarage >= 128) {
-				img->r[i*img->width + j] = 255;
-				img->g[i*img->width + j] = 255;
-				img->b[i*img->width + j] = 255;
-			} else {
-				img->r[i*img->width + j] = 0;
-				img->g[i*img->width + j] = 0;
-				img->b[i*img->width + j] = 0;
-			}
+			/*  Place avarage in all layers */
+      img->r[i*img->width + j] = avarage;
+      img->g[i*img->width + j] = avarage;
+      img->b[i*img->width + j] = avarage;
 		}
 	}
 }
@@ -167,12 +162,10 @@ image sobel(image *img) {
 	unsigned int limh, limw;
 	image filtered;
 
-	/* Create blank sample based on *img */
+	/* Take black and white version of img */
+  grey_scale(img);
 	limh = img->height;
 	limw = img->width;
-
-	/* Take black and white version of img */
-	black_white(img);
 	filtered.width = limw;
 	filtered.height = limh;
 	filtered.r = malloc(limh*limw*sizeof(float));
@@ -191,40 +184,27 @@ image sobel(image *img) {
 
 image sobel_multithread(image *img, int num_threads) {
 
-	unsigned int i, j;
 	unsigned int limh, limw;
 	unsigned int block_size;
 	image filtered;
-	//create threads
+
+	/* Declare threads */
 	pthread_t threads[num_threads];
 	thread_args thread_arguments[num_threads];
-	//pthread_t thread1;
-	//pthread_t thread2;
 	
 	block_size = img->height/num_threads;
   
-	/* Create blank sample based on *img */
+	/* Take black and white version of img */
+  grey_scale(img);
 	limh = img->height;
 	limw = img->width;
-
-	/* Take black and white version of img */
-	black_white(img);
 	filtered.width = limw;
 	filtered.height = limh;
 	filtered.r = malloc(limh*limw*sizeof(float));
 	filtered.g = malloc(limh*limw*sizeof(float));
 	filtered.b = malloc(limh*limw*sizeof(float));
-
-
-	/* Filter image */
-	/*for(i=0 ; i<limh ; i++) {
-		for(j=0 ; j<limw ; j++) {
-		  apply_sobel(img, &filtered, i, j);
-		}
-	}*/
 	
-	//Apply Sobel filter using threads
-	
+	/* Split image betweent threads equaly (or almost) */
 	for(int k = 0; k < num_threads; k++){
 		if(k < num_threads - 1) {
 			if(k == 0)
@@ -241,37 +221,32 @@ image sobel_multithread(image *img, int num_threads) {
 			thread_arguments[k].filtered = &filtered;
 		}
 	}
+
+  /* Create threads */
 	for (int k = 0; k < num_threads; k++) {
 		pthread_create(& (threads[k]), NULL, apply_sobel_threads,(void*) &thread_arguments[k]);
 	}
-	
-	/*thread_args thread_args1;
-	thread_args1.start = 0;
-	thread_args1.end = limh/num_threads;
-	thread_args1.img = img;
-	thread_args1.filtered = &filtered;
 
-	thread_args thread_args2;
-	thread_args2.start = limh/num_threads+1;
-	thread_args2.end = img->height;
-	thread_args2.img = img;
-	thread_args2.filtered = &filtered;*/
+  /* Wait for threads */
 	for(int k = 0; k < num_threads; k++){
 		pthread_join(threads[k], NULL);
 	}
 	
-	//apply_sobel_threads(img, &filtered, 0, block_size);
 	return filtered;
 }
 
-void *apply_sobel_threads(void *args /**image *img, image *filtered, unsigned int start, unsigned int end*/) {
-	/* Filter image */
+void *apply_sobel_threads(void *args) {
+
 	thread_args *parameters = (thread_args *) args;
+
+  /* Apply filter in a section os the image */
 	for(unsigned int i=parameters->start; i<parameters->end ; i++) {
 		for(unsigned int j=0 ; j<parameters->img->width ; j++) {
 		  apply_sobel(parameters->img, parameters->filtered, i, j);
 		}
 	}
+  
+  return NULL;
 }
 
 void apply_sobel(image *src, image *dest, unsigned int lin, unsigned int col) {
@@ -329,11 +304,11 @@ void apply_sobel(image *src, image *dest, unsigned int lin, unsigned int col) {
 		dest->b[pos] += src->b[pos];
 	}
  
-	 /* Bring value to binary 128+ -> 255 and 128- -> 0 */
-	 if(dest->r[pos] < 128) dest->r[pos] = 0; 
-	 if(dest->g[pos] < 128) dest->g[pos] = 0;
-	 if(dest->b[pos] < 128) dest->b[pos] = 0;
-	 if(dest->r[pos] >= 128) dest->r[pos] = 255; 
-	 if(dest->g[pos] >= 128) dest->g[pos] = 255;
-	 if(dest->b[pos] >= 128) dest->b[pos] = 255;
+	 /* Bring value to binary using threshhold */
+	 if(dest->r[pos] < THRESHOLD) dest->r[pos] = 0; 
+	 if(dest->g[pos] < THRESHOLD) dest->g[pos] = 0;
+	 if(dest->b[pos] < THRESHOLD) dest->b[pos] = 0;
+	 if(dest->r[pos] >= THRESHOLD) dest->r[pos] = 255; 
+	 if(dest->g[pos] >= THRESHOLD) dest->g[pos] = 255;
+	 if(dest->b[pos] >= THRESHOLD) dest->b[pos] = 255;
 }
