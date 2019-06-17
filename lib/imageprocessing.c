@@ -3,9 +3,54 @@
 #include <stdio.h>
 #include <FreeImage.h>
 #include <pthread.h>
-
+#include <unistd.h>
 #include "imageprocessing.h"
+#include <sys/types.h>
+#include <sys/mman.h>
+#include <signal.h>
+#include <errno.h>
 
+int protection = PROT_READ | PROT_WRITE;
+int visibility = MAP_SHARED | MAP_ANON;
+
+image open_image_multiprocess(char *file_name){
+  FIBITMAP *bitmapIn;
+  int x, y;
+  RGBQUAD color;
+  image I;
+
+
+  bitmapIn = FreeImage_Load(FIF_JPEG, file_name, 0);
+
+  if (bitmapIn == 0) {
+    printf("Error! File not found - %s\n", file_name);
+  } else {
+    printf("Opened file: %s\n", file_name);
+   }
+
+  x = FreeImage_GetWidth(bitmapIn);
+  y = FreeImage_GetHeight(bitmapIn);
+
+  I.width = x;
+  I.height = y;
+  I.r = mmap(NULL, sizeof(float) * x * y, protection, visibility, 0, 0);
+  I.g = mmap(NULL, sizeof(float) * x * y, protection, visibility, 0, 0);
+  I.b = mmap(NULL, sizeof(float) * x * y, protection, visibility, 0, 0);
+
+   for (int i=0; i<x; i++) {
+     for (int j=0; j <y; j++) {
+      int idx;
+      FreeImage_GetPixelColor(bitmapIn, i, j, &color);
+
+      idx = i + (j*x);
+
+      I.r[idx] = color.rgbRed;
+      I.g[idx] = color.rgbGreen;
+      I.b[idx] = color.rgbBlue;
+    }
+   }
+  return I;
+}
 
 image open_image(char *file_name) {
   FIBITMAP *bitmapIn;
@@ -51,6 +96,14 @@ void free_image(image *img) {
   free(img->g);
   free(img->b);
 }
+void munmap_image(image *img) {
+  unsigned int limh = img->height;
+   unsigned int limw = img->width;
+  munmap( img->r, limh*limw*sizeof(float) );
+  munmap( img->g, limh*limw*sizeof(float) );
+  munmap( img->b, limh*limw*sizeof(float) );
+
+}
 
 void save_image(char *file_name, image *img) {
   FIBITMAP *bitmapOut;
@@ -72,7 +125,7 @@ void save_image(char *file_name, image *img) {
   }
 
   FreeImage_Save(FIF_JPEG, bitmapOut, file_name, JPEG_DEFAULT);
-  printf("Created File: %s\n", file_name);  
+  printf("Created File: %s\n", file_name);
 }
 
 image create_simple_image() {
@@ -94,15 +147,15 @@ image create_simple_image() {
 				img.g[i*img.width + j] = 0;
 				img.b[i*img.width + j] = 0;
 			}
-			/* White line on bottom half */      
+			/* White line on bottom half */
 			else {
 				img.r[i*img.width + j] = 255;
 				img.g[i*img.width + j] = 255;
 				img.b[i*img.width + j] = 255;
-			}	      
+			}
 		}
 	}
-  
+
 	return img;
 }
 
@@ -138,7 +191,7 @@ void black_white(image *img) {
 
 	unsigned int i, j;
 	float avarage = 0;
-  
+
 	for(i=0 ; i<img->height ; i++) {
 		for(j=0 ; j<img->width ; j++) {
 			/* Calculate avarage of R+G+B */
@@ -188,7 +241,64 @@ image sobel(image *img) {
 
 	return filtered;
 }
+image sobel_multiprocess(image *img,int num_processes){
+  unsigned int i, j;
+	unsigned int limh, limw;
+	unsigned int block_size;
+	image filtered;
+	pid_t prc[num_processes];
+	thread_args prc_args[num_processes];
 
+
+	block_size = img->height/num_processes;
+
+	/* Create blank sample based on *img */
+	limh = img->height;
+	limw = img->width;
+
+
+	/* Take black and white version of img */
+	black_white(img);
+	filtered.width = limw;
+	filtered.height = limh;
+
+  filtered.r = mmap(NULL, limh*limw*sizeof(float), protection, visibility, 0, 0);
+  filtered.g = mmap(NULL, limh*limw*sizeof(float), protection, visibility, 0, 0);
+  filtered.b = mmap(NULL, limh*limw*sizeof(float), protection, visibility, 0, 0);
+
+
+  for(int k = 0; k < num_processes; k++){
+		if(k < num_processes - 1) {
+			if(k == 0)
+				prc_args[k].start = k*block_size;
+			else
+				prc_args[k].start = k*block_size+1;
+			prc_args[k].end = prc_args[k].start + block_size;
+			prc_args[k].img = img;
+			prc_args[k].filtered = &filtered;
+		} else {
+			prc_args[k].start = k*block_size+1;
+			prc_args[k].end = img->height;
+			prc_args[k].img = img;
+			prc_args[k].filtered = &filtered;
+		}
+	}
+  for (int k = 0; k < num_processes; k++) {
+    prc[k]=fork();
+    if(prc[k]==0){
+      apply_sobel_threads((void*) &prc_args[k]);
+      exit(EXIT_SUCCESS);
+    }
+	}
+
+
+  for(int k=0;k < num_processes;k++){
+    int status;
+    waitpid(prc[k], &status, 0);
+  }
+  return filtered;
+
+}
 image sobel_multithread(image *img, int num_threads) {
 
 	unsigned int i, j;
@@ -200,9 +310,9 @@ image sobel_multithread(image *img, int num_threads) {
 	thread_args thread_arguments[num_threads];
 	//pthread_t thread1;
 	//pthread_t thread2;
-	
+
 	block_size = img->height/num_threads;
-  
+
 	/* Create blank sample based on *img */
 	limh = img->height;
 	limw = img->width;
@@ -222,14 +332,14 @@ image sobel_multithread(image *img, int num_threads) {
 		  apply_sobel(img, &filtered, i, j);
 		}
 	}*/
-	
+
 	//Apply Sobel filter using threads
-	
+
 	for(int k = 0; k < num_threads; k++){
 		if(k < num_threads - 1) {
 			if(k == 0)
 				thread_arguments[k].start = k*block_size;
-			else 
+			else
 				thread_arguments[k].start = k*block_size+1;
 			thread_arguments[k].end = thread_arguments[k].start + block_size;
 			thread_arguments[k].img = img;
@@ -244,7 +354,7 @@ image sobel_multithread(image *img, int num_threads) {
 	for (int k = 0; k < num_threads; k++) {
 		pthread_create(& (threads[k]), NULL, apply_sobel_threads,(void*) &thread_arguments[k]);
 	}
-	
+
 	/*thread_args thread_args1;
 	thread_args1.start = 0;
 	thread_args1.end = limh/num_threads;
@@ -259,7 +369,7 @@ image sobel_multithread(image *img, int num_threads) {
 	for(int k = 0; k < num_threads; k++){
 		pthread_join(threads[k], NULL);
 	}
-	
+
 	//apply_sobel_threads(img, &filtered, 0, block_size);
 	return filtered;
 }
@@ -288,11 +398,11 @@ void apply_sobel(image *src, image *dest, unsigned int lin, unsigned int col) {
 	/* Maximum line test */
 	if(lin < (height-1)) {
 		dest->r[pos] += src->r[pos + width];
-		dest->g[pos] += src->g[pos + width];   
+		dest->g[pos] += src->g[pos + width];
 		dest->b[pos] += src->b[pos + width];
 	} else {
 		dest->r[pos] += src->r[pos];
-		dest->g[pos] += src->g[pos];   
+		dest->g[pos] += src->g[pos];
 		dest->b[pos] += src->b[pos];
 	}
 
@@ -310,11 +420,11 @@ void apply_sobel(image *src, image *dest, unsigned int lin, unsigned int col) {
 	/* Mininum line test */
 	if(lin) {
 		dest->r[pos] += src->r[pos - width];
-		dest->g[pos] += src->g[pos - width];   
+		dest->g[pos] += src->g[pos - width];
 		dest->b[pos] += src->b[pos - width];
 	} else {
 		dest->r[pos] += src->r[pos];
-		dest->g[pos] += src->g[pos];   
+		dest->g[pos] += src->g[pos];
 		dest->b[pos] += src->b[pos];
 	}
 
@@ -328,12 +438,12 @@ void apply_sobel(image *src, image *dest, unsigned int lin, unsigned int col) {
 		dest->g[pos] += src->g[pos];
 		dest->b[pos] += src->b[pos];
 	}
- 
+
 	 /* Bring value to binary 128+ -> 255 and 128- -> 0 */
-	 if(dest->r[pos] < 128) dest->r[pos] = 0; 
+	 if(dest->r[pos] < 128) dest->r[pos] = 0;
 	 if(dest->g[pos] < 128) dest->g[pos] = 0;
 	 if(dest->b[pos] < 128) dest->b[pos] = 0;
-	 if(dest->r[pos] >= 128) dest->r[pos] = 255; 
+	 if(dest->r[pos] >= 128) dest->r[pos] = 255;
 	 if(dest->g[pos] >= 128) dest->g[pos] = 255;
 	 if(dest->b[pos] >= 128) dest->b[pos] = 255;
 }

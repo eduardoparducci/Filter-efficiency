@@ -17,8 +17,8 @@ int main(int argc, char *argv[]) {
   image *filtered = NULL;
   char out_file[100] = "filtered-";
   unsigned int i, j;
-  
-  
+
+
   int *num_thr = malloc(sizeof(int));
   *num_thr = MAX;
 
@@ -41,17 +41,17 @@ int main(int argc, char *argv[]) {
 
   /* Write header of time report */
   fp = fopen("./docs/time-report.csv", "a");
-  fprintf(fp, "Inline, 1, %u, %u, ", img.height, img.width);
+  fprintf(fp, "Multithread, 1, %u, %u, ", img.height, img.width);
   fclose(fp);
- 
-  
+
+
   /* Process image */
   filtered = measure_time_multithread(sobel_interface, &img, num_thr);
   save_image(out_file, filtered);
 
   /* Remove images from memory */
   free_image(&img);
-  free_image(filtered);  
+  free_image(filtered);
   free(filtered);
 
   return 0;
