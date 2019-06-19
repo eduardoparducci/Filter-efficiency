@@ -25,15 +25,19 @@ int main(int argc, char *argv[]) {
   /* Title of running file */
   printf("Started method: MULTITHREAD\n");
 
-  /* Name of files to be opened and saved */
-  if(argc<=1) {
-    printf("Missing filename. Expect: ./inline <filename>\n");
+  /* Name of file and number of threads */
+  if(argc<=2) {
+    printf("Missing filename. Expect: ./inline <filename> <n_threads>\n");
     return 1;
   } else {
+
     /* Append '-filtered' on output picture name */
     strcpy(out_file, argv[1]);
     out_file[strlen(out_file)-strlen(".jpg")] = '\0';
     strcat(out_file, "-filtered.jpg");
+
+    /* Configure number of threads */
+    *num_thr = atoi(argv[2]);
   }
 
   /* Open Image */
@@ -41,7 +45,7 @@ int main(int argc, char *argv[]) {
 
   /* Write header of time report */
   fp = fopen("./docs/time-report.csv", "a");
-  fprintf(fp, "Multithread, 1, %u, %u, ", img.height, img.width);
+  fprintf(fp, "Multithread, %d, %u, %u, ", *num_thr, img.height, img.width);
   fclose(fp);
 
 
@@ -53,7 +57,8 @@ int main(int argc, char *argv[]) {
   free_image(&img);
   free_image(filtered);
   free(filtered);
-
+  free(num_thr);
+  
   return 0;
 }
 

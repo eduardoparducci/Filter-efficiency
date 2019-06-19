@@ -30,15 +30,18 @@ int main(int argc, char *argv[]) {
   /* Title of running file */
   printf("Started method: MULTIPROCESS\n");
 
-  /* Name of files to be opened and saved */
-  if(argc<=1) {
-    printf("Missing filename. Expect: ./inline <filename>\n");
+  /* Name of file and number of processes */
+  if(argc<=2) {
+    printf("Missing filename. Expect: ./inline <filename> <n_process>\n");
     return 1;
   } else {
     /* Append '-filtered' on output picture name */
     strcpy(out_file, argv[1]);
     out_file[strlen(out_file)-strlen(".jpg")] = '\0';
     strcat(out_file, "-filtered.jpg");
+
+    /* Configure number of threads */
+    *num_prc = atoi(argv[2]);
   }
 
   /* Open Image */
@@ -46,7 +49,7 @@ int main(int argc, char *argv[]) {
 
   /* Write header of time report */
   fp = fopen("./docs/time-report.csv", "a");
-  fprintf(fp, "Multiprocess, 1, %u, %u, ", img.height, img.width);
+  fprintf(fp, "Multiprocess, %d, %u, %u, ", *num_prc, img.height, img.width);
   fclose(fp);
 
 
@@ -56,8 +59,8 @@ int main(int argc, char *argv[]) {
 
   /* Remove images from memory */
   munmap_image(filtered);
-	munmap( filtered, sizeof(image) ) ;
-
+  munmap( filtered, sizeof(image) ) ;
+  free(num_prc);
 
   return 0;
 }
