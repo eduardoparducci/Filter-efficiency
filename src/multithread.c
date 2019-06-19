@@ -8,7 +8,6 @@
 #include "../lib/imageprocessing.h"
 #include "../lib/chronometer.h"
 
-#define MAX 2
 void *sobel_interface(void *args, void *num_thr);
 
 int main(int argc, char *argv[]) {
@@ -16,11 +15,7 @@ int main(int argc, char *argv[]) {
   image img;
   image *filtered = NULL;
   char out_file[100] = "filtered-";
-  unsigned int i, j;
-
-
   int *num_thr = malloc(sizeof(int));
-  *num_thr = MAX;
 
   /* Title of running file */
   printf("Started method: MULTITHREAD\n");

@@ -4,12 +4,10 @@
 
 void *measure_time_multithread(void *(*function)(void *args, void *num_thr), void *args, void *num_thr) {
   FILE *fp;
-  clock_t ct0, ct1, dct; /* Measures based on CPU clock */
+  clock_t ct0, ct1; /* Measures based on CPU clock */
   struct timeval rt0, rt1, drt; /* Measure real time */
   void *P;
 
-
-  int i;
   /* Get initial time*/
   gettimeofday(&rt0, NULL);
   ct0 = clock();
@@ -32,12 +30,10 @@ void *measure_time_multithread(void *(*function)(void *args, void *num_thr), voi
 
 void *measure_time(void *(*function)(void *args), void *args) {
   FILE *fp;
-  clock_t ct0, ct1, dct; /* Measures based on CPU clock */
+  clock_t ct0, ct1; /* Measures based on CPU clock */
   struct timeval rt0, rt1, drt; /* Measure real time */
   void *P;
 
-
-  int i;
   /* Get initial time*/
   gettimeofday(&rt0, NULL);
   ct0 = clock();
@@ -57,7 +53,3 @@ void *measure_time(void *(*function)(void *args), void *args) {
   fclose(fp);
   return P;
 }
-
-
-
-

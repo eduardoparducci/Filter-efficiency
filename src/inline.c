@@ -12,7 +12,6 @@ int main(int argc, char *argv[]) {
   image img;
   image *filtered = NULL;
   char out_file[100];
-  unsigned int i, j;
 
   /* Title of running file */
   printf("Started method: INLINE\n");

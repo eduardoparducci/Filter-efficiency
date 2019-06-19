@@ -1,6 +1,4 @@
 #include <stdio.h>
-#include "../lib/imageprocessing.h"
-#include "../lib/chronometer.h"
 #include <stdlib.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -12,8 +10,9 @@
 #include <sys/mman.h>
 #include <sys/wait.h>
 
+#include "../lib/imageprocessing.h"
+#include "../lib/chronometer.h"
 
-#define MAX 3
 void *sobel_interface(void *args, void *num_prc);
 
 int main(int argc, char *argv[]) {
@@ -21,11 +20,7 @@ int main(int argc, char *argv[]) {
   image img;
   image *filtered = NULL;
   char out_file[100] = "filtered-";
-  unsigned int i, j;
-
-
   int *num_prc = malloc(sizeof(int));
-  *num_prc = MAX;
 
   /* Title of running file */
   printf("Started method: MULTIPROCESS\n");
@@ -73,7 +68,6 @@ void *sobel_interface(void *args, void *num_prc) {
   int visibility = MAP_SHARED | MAP_ANON;
 
   image *filtered =mmap(NULL, sizeof(image), protection, visibility, 0, 0);;
-	 // image *filtered =mmap(NULL, sizeof(image), protection, visibility, 0, 0);
   *filtered = sobel_multiprocess(img, *num_processes);
   return filtered;
 }

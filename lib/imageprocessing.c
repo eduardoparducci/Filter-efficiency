@@ -10,7 +10,6 @@
 #include <signal.h>
 #include <errno.h>
 
-
 int protection = PROT_READ | PROT_WRITE;
 int visibility = MAP_SHARED | MAP_ANON;
 
@@ -267,7 +266,6 @@ image sobel_multiprocess(image *img,int num_processes){
   filtered.g = mmap(NULL, limh*limw*sizeof(float), protection, visibility, 0, 0);
   filtered.b = mmap(NULL, limh*limw*sizeof(float), protection, visibility, 0, 0);
 
-
   for(int k = 0; k < num_processes; k++){
 		if(k < num_processes - 1) {
 			if(k == 0)
@@ -292,7 +290,6 @@ image sobel_multiprocess(image *img,int num_processes){
     }
 	}
 
-
   for(int k=0;k < num_processes;k++){
     int status;
     waitpid(prc[k], &status, 0);
@@ -309,8 +306,6 @@ image sobel_multithread(image *img, int num_threads) {
 	//create threads
 	pthread_t threads[num_threads];
 	thread_args thread_arguments[num_threads];
-	//pthread_t thread1;
-	//pthread_t thread2;
 
 	block_size = img->height/num_threads;
 
@@ -326,16 +321,7 @@ image sobel_multithread(image *img, int num_threads) {
 	filtered.g = malloc(limh*limw*sizeof(float));
 	filtered.b = malloc(limh*limw*sizeof(float));
 
-
-	/* Filter image */
-	/*for(i=0 ; i<limh ; i++) {
-		for(j=0 ; j<limw ; j++) {
-    apply_sobel(img, &filtered, i, j);
-		}
-    }*/
-
-	//Apply Sobel filter using threads
-
+	/* Apply Sobel filter using threads */
 	for(int k = 0; k < num_threads; k++){
 		if(k < num_threads - 1) {
 			if(k == 0)
@@ -356,33 +342,22 @@ image sobel_multithread(image *img, int num_threads) {
 		pthread_create(& (threads[k]), NULL, apply_sobel_threads,(void*) &thread_arguments[k]);
 	}
 
-	/*thread_args thread_args1;
-    thread_args1.start = 0;
-    thread_args1.end = limh/num_threads;
-    thread_args1.img = img;
-    thread_args1.filtered = &filtered;
-
-    thread_args thread_args2;
-    thread_args2.start = limh/num_threads+1;
-    thread_args2.end = img->height;
-    thread_args2.img = img;
-    thread_args2.filtered = &filtered;*/
 	for(int k = 0; k < num_threads; k++){
 		pthread_join(threads[k], NULL);
 	}
 
-	//apply_sobel_threads(img, &filtered, 0, block_size);
 	return filtered;
 }
 
-void *apply_sobel_threads(void *args /**image *img, image *filtered, unsigned int start, unsigned int end*/) {
-	/* Filter image */
+void *apply_sobel_threads(void *args) {
 	thread_args *parameters = (thread_args *) args;
+
 	for(unsigned int i=parameters->start; i<parameters->end ; i++) {
 		for(unsigned int j=0 ; j<parameters->img->width ; j++) {
 		  apply_sobel(parameters->img, parameters->filtered, i, j);
 		}
 	}
+  return NULL;
 }
 
 void apply_sobel(image *src, image *dest, unsigned int lin, unsigned int col) {
