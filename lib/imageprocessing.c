@@ -1,4 +1,3 @@
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <FreeImage.h>
@@ -7,8 +6,10 @@
 #include "imageprocessing.h"
 #include <sys/types.h>
 #include <sys/mman.h>
+#include <sys/wait.h>
 #include <signal.h>
 #include <errno.h>
+
 
 int protection = PROT_READ | PROT_WRITE;
 int visibility = MAP_SHARED | MAP_ANON;
@@ -26,7 +27,7 @@ image open_image_multiprocess(char *file_name){
     printf("Error! File not found - %s\n", file_name);
   } else {
     printf("Opened file: %s\n", file_name);
-   }
+  }
 
   x = FreeImage_GetWidth(bitmapIn);
   y = FreeImage_GetHeight(bitmapIn);
@@ -37,8 +38,8 @@ image open_image_multiprocess(char *file_name){
   I.g = mmap(NULL, sizeof(float) * x * y, protection, visibility, 0, 0);
   I.b = mmap(NULL, sizeof(float) * x * y, protection, visibility, 0, 0);
 
-   for (int i=0; i<x; i++) {
-     for (int j=0; j <y; j++) {
+  for (int i=0; i<x; i++) {
+    for (int j=0; j <y; j++) {
       int idx;
       FreeImage_GetPixelColor(bitmapIn, i, j, &color);
 
@@ -48,7 +49,7 @@ image open_image_multiprocess(char *file_name){
       I.g[idx] = color.rgbGreen;
       I.b[idx] = color.rgbBlue;
     }
-   }
+  }
   return I;
 }
 
@@ -64,7 +65,7 @@ image open_image(char *file_name) {
     printf("Error! File not found - %s\n", file_name);
   } else {
     printf("Opened file: %s\n", file_name);
-   }
+  }
 
   x = FreeImage_GetWidth(bitmapIn);
   y = FreeImage_GetHeight(bitmapIn);
@@ -75,8 +76,8 @@ image open_image(char *file_name) {
   I.g = malloc(sizeof(float) * x * y);
   I.b = malloc(sizeof(float) * x * y);
 
-   for (int i=0; i<x; i++) {
-     for (int j=0; j <y; j++) {
+  for (int i=0; i<x; i++) {
+    for (int j=0; j <y; j++) {
       int idx;
       FreeImage_GetPixelColor(bitmapIn, i, j, &color);
 
@@ -86,7 +87,7 @@ image open_image(char *file_name) {
       I.g[idx] = color.rgbGreen;
       I.b[idx] = color.rgbBlue;
     }
-   }
+  }
   return I;
 
 }
@@ -98,7 +99,7 @@ void free_image(image *img) {
 }
 void munmap_image(image *img) {
   unsigned int limh = img->height;
-   unsigned int limw = img->width;
+  unsigned int limw = img->width;
   munmap( img->r, limh*limw*sizeof(float) );
   munmap( img->g, limh*limw*sizeof(float) );
   munmap( img->b, limh*limw*sizeof(float) );
@@ -111,8 +112,8 @@ void save_image(char *file_name, image *img) {
 
   bitmapOut = FreeImage_Allocate(img->width, img->height, 24, 0, 0, 0);
 
-   for (unsigned int i=0; i<img->width; i++) {
-     for (unsigned int j=0; j<img->height; j++) {
+  for (unsigned int i=0; i<img->width; i++) {
+    for (unsigned int j=0; j<img->height; j++) {
       int idx;
 
       idx = i + (j*img->width);
@@ -129,27 +130,27 @@ void save_image(char *file_name, image *img) {
 }
 
 image create_simple_image() {
-	  image img;
-	  unsigned int i, j;
+  image img;
+  unsigned int i, j;
 
-	  /* Create data matrix for example (10x20) */
-	  img.width = 10;
-	  img.height = 20;
-	  img.r = malloc((10*20)*sizeof(float));
-	  img.g = malloc((10*20)*sizeof(float));
-	  img.b = malloc((10*20)*sizeof(float));
-
-	for(i=0 ; i<img.height ; i++) {
-		for(j=0 ; j<img.width ; j++) {
-			/* Black line on top half */
-			if( (i<(img.height/2)) ) {
-				img.r[i*img.width + j] = 0;
-				img.g[i*img.width + j] = 0;
-				img.b[i*img.width + j] = 0;
-			}
-			/* White line on bottom half */
-			else {
-				img.r[i*img.width + j] = 255;
+  /* Create data matrix for example (10x20) */
+  img.width = 10;
+  img.height = 20;
+  img.r = malloc((10*20)*sizeof(float));
+  img.g = malloc((10*20)*sizeof(float));
+  img.b = malloc((10*20)*sizeof(float));
+    
+  for(i=0 ; i<img.height ; i++) {
+    for(j=0 ; j<img.width ; j++) {
+      /* Black line on top half */
+      if( (i<(img.height/2)) ) {
+        img.r[i*img.width + j] = 0;
+        img.g[i*img.width + j] = 0;
+        img.b[i*img.width + j] = 0;
+      }
+      /* White line on bottom half */
+      else {
+        img.r[i*img.width + j] = 255;
 				img.g[i*img.width + j] = 255;
 				img.b[i*img.width + j] = 255;
 			}
@@ -196,9 +197,9 @@ void black_white(image *img) {
 		for(j=0 ; j<img->width ; j++) {
 			/* Calculate avarage of R+G+B */
 			avarage = (
-				img->r[i*img->width + j] +
-				img->g[i*img->width + j] +
-				img->b[i*img->width + j] ) / 3;
+                 img->r[i*img->width + j] +
+                 img->g[i*img->width + j] +
+                 img->b[i*img->width + j] ) / 3;
 
 			/*  Transform in binary (black or white) */
 			if(avarage >= 128) {
@@ -329,9 +330,9 @@ image sobel_multithread(image *img, int num_threads) {
 	/* Filter image */
 	/*for(i=0 ; i<limh ; i++) {
 		for(j=0 ; j<limw ; j++) {
-		  apply_sobel(img, &filtered, i, j);
+    apply_sobel(img, &filtered, i, j);
 		}
-	}*/
+    }*/
 
 	//Apply Sobel filter using threads
 
@@ -356,16 +357,16 @@ image sobel_multithread(image *img, int num_threads) {
 	}
 
 	/*thread_args thread_args1;
-	thread_args1.start = 0;
-	thread_args1.end = limh/num_threads;
-	thread_args1.img = img;
-	thread_args1.filtered = &filtered;
+    thread_args1.start = 0;
+    thread_args1.end = limh/num_threads;
+    thread_args1.img = img;
+    thread_args1.filtered = &filtered;
 
-	thread_args thread_args2;
-	thread_args2.start = limh/num_threads+1;
-	thread_args2.end = img->height;
-	thread_args2.img = img;
-	thread_args2.filtered = &filtered;*/
+    thread_args thread_args2;
+    thread_args2.start = limh/num_threads+1;
+    thread_args2.end = img->height;
+    thread_args2.img = img;
+    thread_args2.filtered = &filtered;*/
 	for(int k = 0; k < num_threads; k++){
 		pthread_join(threads[k], NULL);
 	}
@@ -439,11 +440,11 @@ void apply_sobel(image *src, image *dest, unsigned int lin, unsigned int col) {
 		dest->b[pos] += src->b[pos];
 	}
 
-	 /* Bring value to binary 128+ -> 255 and 128- -> 0 */
-	 if(dest->r[pos] < 128) dest->r[pos] = 0;
-	 if(dest->g[pos] < 128) dest->g[pos] = 0;
-	 if(dest->b[pos] < 128) dest->b[pos] = 0;
-	 if(dest->r[pos] >= 128) dest->r[pos] = 255;
-	 if(dest->g[pos] >= 128) dest->g[pos] = 255;
-	 if(dest->b[pos] >= 128) dest->b[pos] = 255;
+  /* Bring value to binary 128+ -> 255 and 128- -> 0 */
+  if(dest->r[pos] < 128) dest->r[pos] = 0;
+  if(dest->g[pos] < 128) dest->g[pos] = 0;
+  if(dest->b[pos] < 128) dest->b[pos] = 0;
+  if(dest->r[pos] >= 128) dest->r[pos] = 255;
+  if(dest->g[pos] >= 128) dest->g[pos] = 255;
+  if(dest->b[pos] >= 128) dest->b[pos] = 255;
 }
