@@ -30,7 +30,7 @@ ZIPFILE = $(USERNAME).zip
 EXTENSIONS = *.c *.h *.sh *.pdf
 
 # Header do arquivo de medição de tempo
-TIME_TITLE = "Method, Number of Process/Threads, Height, Width, Real Time, User Time\n"
+TIME_TITLE = "Method, Number of Process/Threads, Height, Width, Real Time, User Time"
 
 all:inline multiprocess multithread
 
