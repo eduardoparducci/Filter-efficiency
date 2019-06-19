@@ -11,7 +11,7 @@ int main(int argc, char *argv[]) {
   FILE *fp;
   image img;
   image *filtered = NULL;
-  char out_file[100] = "filtered-";
+  char out_file[100];
   unsigned int i, j;
 
   /* Title of running file */
